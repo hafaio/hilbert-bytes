@@ -28,7 +28,7 @@ points = ... # arbitrary d-dimensional points
 num, dim = points.shape
 # convert to big-endian bytes
 points_bytes = points[..., None].astype(">u8").view("u1")
-index_bytes = hilbert_bytes.encode(points_bytes)  # indies as big-endian ints
+index_bytes = hilbert_bytes.encode(points_bytes)  # indices as big-endian ints
 new_points_bytes = hilbert_bytes.decode(index_bytes, dim)
 ```
 
