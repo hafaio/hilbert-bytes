@@ -128,6 +128,7 @@ def encode(points: NDArray[np.uint8]) -> NDArray[np.uint8]:  # pragma: no cover
         A collection of n big-endian unsigned integers that correspond to the
         index along the hilbert-curve for the input points.
     """
+    points = points.copy()
     num, ndim, nbytes = points.shape
 
     # iterate forwards through the bytes and bits

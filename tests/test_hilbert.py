@@ -56,6 +56,20 @@ def test_three_dims() -> None:
     assert np.all(byte_nums == actual_nums)
 
 
+def test_encode_does_not_mutate_input() -> None:
+    """Encode must not clobber the caller's input array."""
+    nums = np.arange(0, 1 << 16, dtype="u2")
+    byte_points = nums[..., None].astype(">u2").view("u1")[:, None, :]
+    original = byte_points.copy()
+
+    first = hilbert_bytes.encode(byte_points)
+    assert np.array_equal(byte_points, original)
+
+    # encoding again yields the same result rather than garbage
+    second = hilbert_bytes.encode(byte_points)
+    assert np.array_equal(first, second)
+
+
 def test_exception() -> None:
     """Test exception when bytes don't align."""
     nums = np.arange(0, 1 << 8, dtype="u1")[:, None]
