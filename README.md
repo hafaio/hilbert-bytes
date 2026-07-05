@@ -1,6 +1,6 @@
 # Hilbert Bytes
 
-[![build](https://github.com/erikbrinkman/hilbert-bytes/actions/workflows/python-package.yml/badge.svg)](https://github.com/erikbrinkman/hilbert-bytes/actions/workflows/python-package.yml)
+[![build](https://github.com/erikbrinkman/hilbert-bytes/actions/workflows/build.yml/badge.svg)](https://github.com/erikbrinkman/hilbert-bytes/actions/workflows/build.yml)
 [![pypi](https://img.shields.io/pypi/v/hilbert-bytes)](https://pypi.org/project/hilbert-bytes/)
 [![docs](https://img.shields.io/badge/api-docs-blue)](https://erikbrinkman.github.io/hilbert-bytes)
 
@@ -43,8 +43,7 @@ But note that this will only work if your index fits in 8 bytes
 
 ## Publishing
 
-```sh
-rm -rf dist
-uv build
-uv publish --username __token__
-```
+Releases are cut with the `release` workflow, run manually from the Actions tab
+with a `patch`, `minor`, or `major` version bump. It bumps the version, uploads
+to PyPI via [trusted publishing](https://docs.pypi.org/trusted-publishers/), tags
+and creates a GitHub release, then builds and deploys the docs.
