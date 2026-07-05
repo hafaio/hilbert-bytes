@@ -1,6 +1,5 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
+# Continuous integration: lint, type-check, and test on every push and PR to
+# main. Also reused as the release gate via workflow_call (see release.yml).
 name: build
 
 on:
@@ -8,8 +7,12 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_call:
 
 jobs:
+  # Lint, type-check, and test across the supported Python versions. Also
+  # invoked via workflow_call as the release gate, so this is the single
+  # source of truth for what "passing CI" means.
   test:
     runs-on: ubuntu-latest
     strategy:
