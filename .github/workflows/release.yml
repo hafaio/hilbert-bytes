@@ -1,0 +1,170 @@
+# Manually cut a release: bump the version, publish to PyPI via trusted
+# publishing, tag + create a GitHub release, and deploy the docs.
+# See: https://docs.pypi.org/trusted-publishers/
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  id-token: write
+  pages: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Check ruff format
+        run: uv run ruff format --check
+      - name: Check with ruff
+        run: uv run ruff check
+      - name: Run pyright
+        run: uv run pyright
+      - name: Test with pytest
+        run: uv run pytest
+
+  prepare:
+    needs: gate
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - name: Compute new version
+        id: bump
+        run: |
+          current=$(uv version | cut -d' ' -f2)
+          IFS='.' read -r major minor patch <<< "$current"
+          case "${{ inputs.bump }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          version="${major}.${minor}.${patch}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "New version: ${version}"
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - name: Set version
+        run: uv version ${{ needs.prepare.outputs.version }} --frozen
+      - name: Build
+        run: uv build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # Publish from a dedicated environment so the OIDC token is scoped to a job
+    # that only uploads the built artifacts and runs no project build code.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/hilbert-bytes/
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+  release:
+    needs: [prepare, publish]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - name: Set version and commit
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          uv version "$VERSION" --frozen
+          uv lock
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml uv.lock
+          git commit -m "v${VERSION}"
+          git tag -a "v${VERSION}" -m "v${VERSION}"
+          git push --follow-tags
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v${{ needs.prepare.outputs.version }}" --generate-notes
+
+  # Build the docs from the freshly tagged version into a Pages artifact.
+  docs-build:
+    needs: [release, prepare]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: v${{ needs.prepare.outputs.version }}
+      - uses: actions/configure-pages@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          python-version: "3.13"
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Build site
+        run: uv run sphinx-build -M html docs out
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: "./out/html"
+
+  # Deploy the built artifact. Kept separate from the build so a failed deploy
+  # can be re-run without rebuilding and duplicating the docs artifact.
+  docs-deploy:
+    needs: docs-build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
