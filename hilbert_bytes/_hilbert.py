@@ -43,8 +43,9 @@ def _gray_decode(gray: NDArray[np.uint8]) -> NDArray[np.uint8]:  # pragma: no co
 
 
 @nb.jit(nb.void(nb.uint8[:], nb.uint8[:]), cache=True, nogil=True)
-# pragma: no cover
-def _transpose_bits(inp: NDArray[np.uint8], out: NDArray[np.uint8]) -> None:
+def _transpose_bits(
+    inp: NDArray[np.uint8], out: NDArray[np.uint8]
+) -> None:  # pragma: no cover
     """Tranpose the bits in one bit aray into another bit array."""
     (nbytes,) = inp.shape
     mask = np.uint8(128)
@@ -61,8 +62,9 @@ def _transpose_bits(inp: NDArray[np.uint8], out: NDArray[np.uint8]) -> None:
 
 
 @nb.jit(nb.uint8[:, ::1](nb.uint8[:, :]), cache=True, parallel=True, nogil=True)
-# pragma: no cover
-def _transpose_bits_broadcasted(inp: NDArray[np.uint8]) -> NDArray[np.uint8]:
+def _transpose_bits_broadcasted(
+    inp: NDArray[np.uint8],
+) -> NDArray[np.uint8]:  # pragma: no cover
     """Transpose bits broadcasted over the leading dimension."""
     num, nbytes = inp.shape
     out = np.zeros((num, nbytes), "u1")
@@ -72,8 +74,9 @@ def _transpose_bits_broadcasted(inp: NDArray[np.uint8]) -> NDArray[np.uint8]:
 
 
 @nb.jit(nb.void(nb.uint8[:], nb.uint8[:]), cache=True, nogil=True)
-# pragma: no cover
-def _inv_transpose_bits(inp: NDArray[np.uint8], out: NDArray[np.uint8]) -> None:
+def _inv_transpose_bits(
+    inp: NDArray[np.uint8], out: NDArray[np.uint8]
+) -> None:  # pragma: no cover
     (nbytes,) = inp.shape
     mask = np.uint8(128)
     source: int = 0
@@ -88,8 +91,9 @@ def _inv_transpose_bits(inp: NDArray[np.uint8], out: NDArray[np.uint8]) -> None:
 
 
 @nb.jit(nb.uint8[:, ::1](nb.uint8[:, :]), cache=True, parallel=True, nogil=True)
-# pragma: no cover
-def _inv_transpose_bits_broadcasted(inp: NDArray[np.uint8]) -> NDArray[np.uint8]:
+def _inv_transpose_bits_broadcasted(
+    inp: NDArray[np.uint8],
+) -> NDArray[np.uint8]:  # pragma: no cover
     """Transpose bits but broadcasted over the leading dimension."""
     num, nbytes = inp.shape
     out = np.zeros((num, nbytes), "u1")
@@ -172,8 +176,9 @@ def encode(points: NDArray[np.uint8]) -> NDArray[np.uint8]:  # pragma: no cover
 
 
 @nb.jit(nb.uint8[:, ::1, :](nb.uint8[:, :], nb.int64), cache=True, nogil=True)
-# pragma: no cover
-def decode(indices: NDArray[np.uint8], ndim: int) -> NDArray[np.uint8]:
+def decode(
+    indices: NDArray[np.uint8], ndim: int
+) -> NDArray[np.uint8]:  # pragma: no cover
     """Decode dp-dimensional indices into d-dimensional points.
 
     This function takes indices on the hilbert curve, and the output dimension
