@@ -46,7 +46,7 @@ def _gray_decode(gray: NDArray[np.uint8]) -> NDArray[np.uint8]:  # pragma: no co
 def _transpose_bits(
     inp: NDArray[np.uint8], out: NDArray[np.uint8]
 ) -> None:  # pragma: no cover
-    """Tranpose the bits in one bit aray into another bit array."""
+    """Transpose the bits in one bit array into another bit array."""
     (nbytes,) = inp.shape
     mask = np.uint8(128)
     target: int = 0
@@ -182,7 +182,7 @@ def decode(
     """Decode dp-dimensional indices into d-dimensional points.
 
     This function takes indices on the hilbert curve, and the output dimension
-    and converts them to their coresponding points. All numbers are represented
+    and converts them to their corresponding points. All numbers are represented
     as arbitrary precision integers in big-endian form.
 
     `ndim` must divide the last dimension. If it doesn't this will error. You
