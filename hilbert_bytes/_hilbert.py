@@ -32,12 +32,13 @@ def _gray_encode(arr: NDArray[np.uint8]) -> NDArray[np.uint8]:  # pragma: no cov
 
 @nb.jit(nb.uint8[:, ::1](nb.uint8[:, ::1]), cache=True, nogil=True)
 def _gray_decode(gray: NDArray[np.uint8]) -> NDArray[np.uint8]:  # pragma: no cover
-    # Loop the log2(bits) number of times necessary, with shift and xor.
+    # invert the gray code with a doubling shift-and-xor prefix scan
     _, nbytes = gray.shape
-    shift: int = (1 << np.uint64(np.log2(nbytes - 1))) * 8  # type: ignore
-    while shift > 0:
+    total_bits = nbytes * 8
+    shift = 1
+    while shift < total_bits:
         gray[:] = gray ^ _right_shift(gray, shift)
-        shift >>= 1
+        shift <<= 1
     return gray
 
 

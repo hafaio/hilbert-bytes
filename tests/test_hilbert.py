@@ -26,6 +26,23 @@ def test_single_dim() -> None:
     assert np.all(byte_nums == actual_nums)
 
 
+def test_single_dim_single_byte() -> None:
+    """Test single-dimension single-byte indices.
+
+    This exercises the nbytes == 1 path in _gray_decode.
+    """
+    nums = np.arange(0, 1 << 8, dtype="u1")
+    byte_nums = nums[..., None]
+
+    expected_points = hilbert.decode(nums, 1, 8)
+    byte_points = hilbert_bytes.decode(byte_nums, 1)
+    actual_points = byte_points.view("u1").astype("u8")[..., 0]
+    assert np.all(expected_points == actual_points)
+
+    actual_nums = hilbert_bytes.encode(byte_points)
+    assert np.all(byte_nums == actual_nums)
+
+
 def test_two_dims() -> None:
     """Test hilbert bytes on two dimensions."""
     nums = np.arange(0, 1 << 16, dtype="u2")
