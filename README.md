@@ -24,7 +24,7 @@ pip install hilbert-bytes
 import hilbert_bytes
 import numpy as np
 
-points = ... # arbitrary d-dimensional points
+points = ...  # arbitrary d-dimensional points
 num, dim = points.shape
 # convert to big-endian bytes
 points_bytes = points[..., None].astype(">u8").view("u1")
@@ -35,7 +35,7 @@ new_points_bytes = hilbert_bytes.decode(index_bytes, dim)
 If you want the indices as multi-byte ints, you can can do a similar trick in reverse:
 
 ```py
-index_bytes = ... # an array of big-endian ints
+index_bytes = ...  # an array of big-endian ints
 indices = index_bytes.view(">u8").astype("u8")[..., -1]
 ```
 

@@ -13,4 +13,4 @@ Use `encode` and `decode` to convert between the spaces.
 
 from ._hilbert import decode, encode
 
-__all__ = ("encode", "decode")
+__all__ = ("decode", "encode")
