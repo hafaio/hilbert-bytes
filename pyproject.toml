@@ -41,6 +41,8 @@ strict = ["hilbert_bytes", "tests"]
 
 [tool.ruff.lint]
 extend-select = ["I", "D", "A", "B", "W", "PL", "UP", "FIX"]
+# stub type params read fine unprefixed
+ignore = ["PYI001"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
